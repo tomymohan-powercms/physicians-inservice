@@ -1,0 +1,16 @@
+name = "list of physicians inservice"
+description = "A module used to list out the details of the phycians in service."
+core = "7.x"
+
+
+
+
+
+$node->field_photo['und'][0] = array(
+    'fid' => $image->fid,
+    'filename' => $image->filename,
+    'filemime' => $image->filemime,
+    'uid' => 1,
+    'uri' => $image->uri,
+    'status' => 1
+  );

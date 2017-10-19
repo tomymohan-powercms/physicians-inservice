@@ -1,0 +1,131 @@
+<?php
+function physicians_inservice_menu() {
+	$items = array();
+	$items['physicians_data'] = array(
+		'title' => 'Physician Details',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('physicians_inservice_form'),
+		'access arguments' => array('access content'),
+		'description' => 'Details of Physicians',
+		'type' => MENU_CALLBACK,
+	);
+	return $items;
+}
+
+function physicians_inservice_form($form, &$form_state) {
+	
+  $form['nid'] = array(
+    '#type' => 'textfield',
+    '#title' => t('NID'),
+    '#description' => "Please enter Physicians NID.",
+  );
+
+	$form['submit'] = array (
+    '#type'  => 'submit',
+    '#value' => 'Submit',
+  );
+	
+	return $form;
+}
+
+/*function physicians_inservice_form_validate($form, &$form_state) {
+	if (!($form_nid['values']['price'] > 0)){
+		form_set_error('price', t('NID must be a positive number.'));
+	}
+}
+*/
+
+function physicians_inservice_form_submit($form, &$form_state) {
+  //dpm($form_state['input']['email']);
+  $physicians_data = "http://www.fhmgportal.com/api/physicians-data?api-key=2289ffb61a74e2bd20c934612b957edf&npi=". $form_state['input']['nid'];
+  $request = drupal_http_request($physicians_data);
+  $physician =  drupal_json_decode($request->data);
+  //dpm($physician);
+  $physician_name =  $physician[0]['field_full_name_string'];
+ 
+
+  $physician_degree =  $physician[0]['field_degree'];
+  //dpm($physician_degree);
+
+  $physician_gender =  $physician[0]['field_gender'];
+  //dpm($physician_gender);
+
+  $physician_language =  $physician[0]['field_languages'];
+  //dpm($physician_language);
+
+  $physician_medical_license_number =  $physician[0]['field_medical_license_number'];
+  //dpm($physician_medical_license_number);
+
+  $physician_medical_school =  $physician[0]['field_medical_school'];
+  //dpm($physician_medical_school);
+
+  $physician_residency =  $physician[0]['field_residency'][0];
+  //dpm($physician_residency);
+
+  $physician_speciality =  $physician[0]['field_speciality'][0];
+  //dpm($physician_speciality);
+
+  $physician_image =  $physician[0]['field_image_large'];
+  //dpm($physician_image);
+
+  $image = system_retrieve_file($physician_image, 'public://', TRUE, $replace = FILE_EXISTS_REPLACE); 
+  dpm($image);
+
+  $node = new stdClass;
+	$node->type = 'physicians';
+	$node->title = $physician_name;
+	$node->field_full_name['und'][0]['value'] = $physician_name;
+	$node->field_degree['und'][0]['value'] = $physician_degree;
+	$node->field_gender['und'][0]['value'] = $physician_gender;
+	node_object_prepare($node);
+  $node->field_photo['und'][0]['filename'] = $image->filename;
+  $node->field_photo['und'][0]['fid'] = $image->fid;
+  //$node->field_photo['und'][0]['uri'] = $image->uri;
+
+  /*$node->field_photo['und'][0] = array(
+    'fid' => $image->fid,
+    'filename' => $image->filename,
+    'filemime' => $image->filemime,
+    'uid' => 1,
+    'uri' => $image->uri,
+    'status' => 1
+  );*/
+
+	$node->field_language[0]['field_languages'] = 'english';
+	$node->field_medical_licence_no_['und'][0]['value'] = $physician_medical_license_number;
+	$node->field_medical_school['und'][0]['value'] = $physician_medical_school;
+	$node->field_residency['und'][0]['value']= $physician_residency;
+	$node->field_speciality['und'][0]['value'] = $physician_speciality;
+
+	/*$field = field_get_items('node', $node, 'field_image');
+  $image_url = image_style_url('landingpage_slider', $field[0]['uri']);
+*/
+
+	node_save($node);
+
+ }
+  /*$url ='http://www.fhmgportal.com/sites/default/files/physician/1487968764-large.jpg';
+  $file_info = system_retrieve_file($url, 'public://pictues/', TRUE);
+  if($file_info->fid){
+    $node->field_image[LANGUAGE_NONE][0]['field_image_large'] = $file_info->fid;//assign fid*/
+
+  /*$node = new stdClass(); // We create a new node object
+	$node->type = "page"; // Or any other content type you want
+	$node->title =  $physician[0]['title'];
+	$node->language = LANGUAGE_NONE; // Or any language code if Locale module is enabled. More on this below *
+
+	node_object_prepare($node); // Set some default values.
+	$node->uid = 1; // Or any id you wish
+
+	// Let's add standard body field
+	//dpm($physician[0]['title']);
+
+	$node->degree =$physician[0]['title'];
+	$node->body[$node->language][0]['summary'] = 'Here goes a summary';
+	$node->body[$node->language][0]['format'] = 'filtered_html'; // If field has a format, you need to define it. Here we define a default filtered_html format for a body field
+
+	$node = node_submit($node); // Prepare node for a submit
+	//node_save($node); // After this call we'll get a nid
+	  //$
+	}
+*/
